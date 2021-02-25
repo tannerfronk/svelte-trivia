@@ -7,8 +7,6 @@
 	let selectedCategory = "";
 	let difficulty = "";
 
-	// $: console.log(selectedCategory)
-	// $: console.log(difficulty)
 
 	const categoryURL = 'https://opentdb.com/api_category.php'
 	
@@ -27,14 +25,7 @@
 		questions = fullData.results;
 		console.log(questions)
 	}
-
-
-	function checkAnswer(){
-		// if(correctAnswers.includes(this.innerHTML)){
-		// 	console.log("yay")
-		// }
-	}
-		
+	
 
 </script>
 
@@ -66,7 +57,7 @@
 	<button on:click={getQuestions}>Lets Go!</button>
 </div>
 
-	{#each questions as question}
+	{#each questions as question, i}
 		<div class="questionBox">
 			<h2>{question.question}</h2>
 			<div id="answers">
