@@ -1,13 +1,14 @@
 <script>
-	import {onMount} from 'svelte'
-	let name = ''
+	import {onMount} from 'svelte';
+	import _ from 'lodash';
+	let name = '';
 	let categories = [];
-	let questions = [];
-	let questionsArray = [];
+	let questionsPromise = Promise.resolve([]);
 
-	let selectedCategory = "";
+	let selectedCategory = "&category9";
 	let difficulty = "";
-
+	let correct = 0;
+	let wrong = 0;
 
 	const categoryURL = 'https://opentdb.com/api_category.php'
 	
@@ -15,34 +16,58 @@
 		const res = await fetch(categoryURL);
 		let fullData = await res.json();
 		categories = fullData.trivia_categories;
-		console.log(categories)
 	})
 
-	$: questionURL = 'https://opentdb.com/api.php?amount=10' + selectedCategory + difficulty + "&type=multiple";
-
+	$: questionURL = 'https://opentdb.com/api.php?amount=10' + selectedCategory + difficulty + '&type=multiple';
+	
 	async function getQuestions(){
 		const res = await fetch(questionURL);
 		let fullData = await res.json();
-		questions = fullData.results;
+		let questionsArray = [];
+		let questions = fullData.results;
 		questions.forEach(question => {
 		let answersArray = [];
 			answersArray.push({answer: question.correct_answer, correct: true})
-			answersArray.push()
 			question.incorrect_answers.forEach(incorrectAnswer => {
 				answersArray.push({answer: incorrectAnswer, correct: false})
 			})
+			answersArray.sort(function (a, b) {return Math.random() - 0.5;});
 			questionsArray.push({question: question.question, answers: answersArray})
-			for(let i=0; i< questionsArray.length; i++){
-				questionsArray[i].answers.sort(function(a,b){return Math.random() - 0.5;});
-			}
 		});
-		console.log(questionsArray)
+		return questionsArray
 	}
 
+	function handleClick() {
+		questionsPromise = getQuestions()
+		let btn = document.getElementById('hidden')
+		btn.style.zIndex = ''
+	}
+
+	function checkAnswer(answer, btnId) {
+		let button = document.getElementById(btnId)
+		let answerText = document.getElementById(btnId).innerText;
+		let chosenAnswer = {answer: answerText, correct: true}
+		if(JSON.stringify(answer) === JSON.stringify(chosenAnswer)){
+			console.log("correct!");
+			button.style.backgroundColor = 'lightgreen';
+			correct +=1;
+		} else {
+			button.style.backgroundColor = 'red';
+			wrong +=1;
+		}
+	}
+	
+	
 </script>
 
 <main>
 	<div>
+		
+	<span id="tracker">
+		<p>Correct Answers: {correct}</p>
+		<p>Wrong Answers: {wrong}</p>
+	</span>
+
 	<div id="name">
 		<p>Your Name:</p>
 		<input bind:value='{name}'>
@@ -59,27 +84,29 @@
 
 	<p>Select a Category:</p>
 	<select bind:value={selectedCategory}>
-		<option value="">Any</option>
+		<option value="&category9=">Any</option>
 		{#each categories as category}
-			<option value="{"&category" + category.id}">{category.name}</option>
+			<option value="{"&category=" + category.id}">{category.name}</option>
 		{/each}
 	</select>
 
-	
-	<button on:click={getQuestions}>Lets Go!</button>
 </div>
 
-	{#each questions as question, i}
+
+{#await questionsPromise then questionsArray}
+
+	{#each questionsArray as question}
 		<div class="questionBox">
-			<h2>{question.question}</h2>
+			<h2>{@html _.unescape(question.question)}</h2>
 			<div id="answers">
-				<button>{question.correct_answer}</button>
-				<button>{question.incorrect_answers[0]}</button>
-				<button>{question.incorrect_answers[1]}</button>
-				<button>{question.incorrect_answers[2]}</button>
+				{#each question.answers as answer}
+					<button id={answer.answer} on:click={() => checkAnswer(answer, answer.answer)}>{@html _.unescape(answer.answer)}</button>
+				{/each}
 			</div>
 		</div>	
 	{/each}
+	<button id="hidden" on:click={handleClick}>Questions!</button>
+{/await}
 	
 </main>
 
@@ -89,6 +116,18 @@
 		padding: 1em;
 		max-width: 360px;
 		margin: 0 auto;
+		background-color: #DEF2F1;
+	}
+	#hidden {
+		z-index: 999;
+	}
+	#tracker {
+		position: fixed;
+		right: 2%;
+		background-color: white;
+		padding: 0 10px;
+		box-shadow: 1px 1px #FEFFFF;
+		border-radius: 5px;
 	}
 	#name {
 		display: flex;
@@ -102,7 +141,7 @@
 		height: 26px;
 	}
 	h1 {
-		color: blue;
+		color: #17252A;
 		font-size: 2em;
 		font-weight: 100;
 	}
@@ -111,8 +150,37 @@
 		font-weight: 100;
 	}
 	.questionBox {
-		border: 1px solid black;
-		margin-bottom: 1rem;
+		margin: 0 auto;
+		padding: 1rem;
+		margin-top: 1rem;
+		margin-bottom: 2rem;
+		border-radius: 10px;
+		background-color: #3AAFA9;
+		color: #DEF2F1;
+		max-width: 80%;
+	}
+	button {
+		border-radius: 10px;
+		border: none;
+		background-color: #FEFFFF;
+		padding: 10px;
+		margin: 1rem;
+	}
+	button:active {
+		background-color: #4AAFA9;
+		color: #FEFFFF;
+	}
+	button:hover {
+		cursor: pointer;
+	}
+	input {
+		border-radius: 10px;
+		background-color: #FEFFFF;
+	}
+	select {
+		border-radius: 10px;
+		background-color: #FEFFFF;
+		border: none;
 	}
 
 	@media (min-width: 640px) {
