@@ -3,6 +3,7 @@
 	let name = ''
 	let categories = [];
 	let questions = [];
+	let questionsArray = [];
 
 	let selectedCategory = "";
 	let difficulty = "";
@@ -23,9 +24,20 @@
 		const res = await fetch(questionURL);
 		let fullData = await res.json();
 		questions = fullData.results;
-		console.log(questions)
+		questions.forEach(question => {
+		let answersArray = [];
+			answersArray.push({answer: question.correct_answer, correct: true})
+			answersArray.push()
+			question.incorrect_answers.forEach(incorrectAnswer => {
+				answersArray.push({answer: incorrectAnswer, correct: false})
+			})
+			questionsArray.push({question: question.question, answers: answersArray})
+			for(let i=0; i< questionsArray.length; i++){
+				questionsArray[i].answers.sort(function(a,b){return Math.random() - 0.5;});
+			}
+		});
+		console.log(questionsArray)
 	}
-	
 
 </script>
 
