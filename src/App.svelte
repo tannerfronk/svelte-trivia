@@ -95,12 +95,12 @@
 
 {#await questionsPromise then questionsArray}
 
-	{#each questionsArray as question}
+	{#each questionsArray as question, i}
 		<div class="questionBox">
 			<h2>{@html _.unescape(question.question)}</h2>
 			<div id="answers">
 				{#each question.answers as answer}
-					<button id={answer.answer} on:click={() => checkAnswer(answer, answer.answer)}>{@html _.unescape(answer.answer)}</button>
+					<button id={answer.answer+i} on:click={() => checkAnswer(answer, answer.answer+i)}>{@html _.unescape(answer.answer)}</button>
 				{/each}
 			</div>
 		</div>	
